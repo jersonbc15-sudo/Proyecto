@@ -1,108 +1,104 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Scanner;
+import javax.swing.*;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
 
-public class BusquedaTexto {
+public class ArchivoBusquedaDetallada {
 
-    public static void buscarPalabraEnArchivo(String nombreArchivo, String palabra) {
-        int lineasLeidas = 0;
-        int lineasConPalabra = 0;
-        int totalPalabrasEncontradas = 0;
+    private Map<String, Set<String>> indiceInvertido;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
-            String linea;
+    public ArchivoBusquedaDetallada() {
+        indiceInvertido = new HashMap<>();
+    }
 
-            while ((linea = br.readLine()) != null) {
-                lineasLeidas++;
-
-                if (contienePalabra(linea, palabra)) {
-                    lineasConPalabra++;
-                    int ocurrencias = contarOcurrencias(linea, palabra);
-                    totalPalabrasEncontradas += ocurrencias;
-
-                    System.out.println("Línea " + lineasLeidas + ": " + linea);
-                    System.out.println("  Ocurrencias en esta línea: " + ocurrencias);
+    public void construirIndice(List<String> archivos) throws IOException {
+        for (String archivo : archivos) {
+            List<String> lineas = Files.readAllLines(Paths.get(archivo));
+            for (String linea : lineas) {
+                String[] palabras = linea.toLowerCase().split("\\W+");
+                for (String palabra : palabras) {
+                    if (palabra.isEmpty()) continue;
+                    indiceInvertido
+                        .computeIfAbsent(palabra, k -> new HashSet<>())
+                        .add(archivo);
                 }
             }
-
-            System.out.println("\n===== Resumen =====");
-            System.out.println("Total líneas leídas: " + lineasLeidas);
-            System.out.println("Líneas que contienen la palabra '" + palabra + "': " + lineasConPalabra);
-            System.out.println("Total de ocurrencias encontradas: " + totalPalabrasEncontradas);
-
-        } catch (IOException e) {
-            System.out.println("Error al leer el archivo: " + e.getMessage());
         }
     }
 
-    public static boolean contienePalabra(String linea, String palabra) {
-        return linea.toLowerCase().contains(palabra.toLowerCase());
+    public Set<String> buscar(String palabra) {
+        return indiceInvertido.getOrDefault(palabra.toLowerCase(), Collections.emptySet());
     }
 
-    public static int contarOcurrencias(String linea, String palabra) {
-        String lineaMinuscula = linea.toLowerCase();
-        String palabraMinuscula = palabra.toLowerCase();
-
-        int contador = 0;
-        int index = 0;
-
-        while ((index = lineaMinuscula.indexOf(palabraMinuscula, index)) != -1) {
-            contador++;
-            index += palabraMinuscula.length();
+    public void mostrarIndice() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Set<String>> entry : indiceInvertido.entrySet()) {
+            sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
         }
-
-        return contador;
-    }
-
-    public static String pedirRutaArchivo() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Ingrese la ruta del archivo de texto: ");
-        return scanner.nextLine();
-    }
-
-    public static String pedirPalabra() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Ingrese la palabra a buscar: ");
-        return scanner.nextLine();
-    }
-
-    public static void mostrarMenu() {
-        System.out.println("=====================================");
-        System.out.println(" Sistema de búsqueda en archivo");
-        System.out.println("=====================================");
-        System.out.println("1. Buscar palabra en archivo");
-        System.out.println("2. Salir");
-        System.out.println("=====================================");
-        System.out.print("Seleccione una opción: ");
+        JTextArea textArea = new JTextArea(sb.toString());
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new java.awt.Dimension(400, 300));
+        JOptionPane.showMessageDialog(null, scrollPane, "Índice Invertido", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        boolean salir = false;
+        ArchivoBusquedaDetallada buscador = new ArchivoBusquedaDetallada();
 
-        while (!salir) {
-            mostrarMenu();
-            String opcion = scanner.nextLine();
+        // Pedir archivos separados por coma
+        String entradaArchivos = JOptionPane.showInputDialog(null,
+                "Ingrese las rutas de los archivos separados por coma:",
+                "Archivos para indexar",
+                JOptionPane.QUESTION_MESSAGE);
 
-            switch (opcion) {
-                case "1":
-                    String ruta = pedirRutaArchivo();
-                    String palabra = pedirPalabra();
-                    buscarPalabraEnArchivo(ruta, palabra);
-                    System.out.println();
-                    break;
-
-                case "2":
-                    System.out.println("Gracias por usar el programa. ¡Adiós!");
-                    salir = true;
-                    break;
-
-                default:
-                    System.out.println("Opción inválida. Intente nuevamente.");
-                    break;
-            }
+        if (entradaArchivos == null || entradaArchivos.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No se ingresaron archivos. Saliendo.");
+            return;
         }
+
+        List<String> archivos = new ArrayList<>();
+        for (String archivo : entradaArchivos.split(",")) {
+            archivos.add(archivo.trim());
+        }
+
+        try {
+            buscador.construirIndice(archivos);
+            buscador.mostrarIndice();
+
+            String palabra = JOptionPane.showInputDialog(null,
+                    "Ingrese la palabra a buscar:",
+                    "Buscar palabra",
+                    JOptionPane.QUESTION_MESSAGE);
+
+            if (palabra == null || palabra.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No se ingresó palabra para buscar. Saliendo.");
+                return;
+            }
+
+            Set<String> resultados = buscador.buscar(palabra.trim());
+
+            if (resultados.isEmpty()) {
+                JOptionPane.showMessageDialog(null,
+                        "No se encontraron resultados para '" + palabra + "'",
+                        "Resultados",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append("La palabra '").append(palabra).append("' aparece en los archivos:\n");
+                for (String archivo : resultados) {
+                    sb.append(" - ").append(archivo).append("\n");
+                }
+                JOptionPane.showMessageDialog(null, sb.toString(), "Resultados", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error leyendo archivos: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+}
 
         scanner.close();
     }
