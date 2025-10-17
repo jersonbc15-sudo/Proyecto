@@ -45,10 +45,10 @@ public class ArchivoBusquedaDetallada {
     private static List<String> crearArchivosDePrueba() throws IOException {
         List<String> rutas = new ArrayList<>();
 
-        String[] nombres = {"texto1.txt", "texto2.txt"};
+        String[] nombres = {"johnny_historia.txt", "steel_ball_run.txt"};
         String[] contenidos = {
-            "Hola mundo. Este es el primer archivo de ejemplo. Contiene palabras como sol y luna. El sol brilla mucho.",
-            "Segundo archivo de texto. Aquí también está la palabra sol junto con estrellas y cielo azul."
+            "Johnny Joestar fue un joven jinete con un gran talento, pero tras un accidente perdió la movilidad de sus piernas. Su viaje comienza cuando conoce a Gyro Zeppeli durante la carrera Steel Ball Run. Johnny busca comprender el poder del Spin para poder volver a caminar y encontrar su propósito. Su determinación lo lleva a enfrentarse a enemigos y superar sus límites, impulsado por la esperanza y la fe en sí mismo.",
+            "Durante la carrera Steel Ball Run, Johnny y Gyro forman un vínculo profundo. Gyro le enseña a Johnny el arte del Spin y el poder del equilibrio. Con su Stand Tusk, Johnny aprende a canalizar el Spin en niveles cada vez más poderosos. Juntos enfrentan a Valentine y su Stand Dirty Deeds Done Dirt Cheap, luchando por la libertad y la justicia en un mundo lleno de misterio y destino."
         };
 
         for (int i = 0; i < nombres.length; i++) {
@@ -66,7 +66,7 @@ public class ArchivoBusquedaDetallada {
 
         try {
             int opcion = JOptionPane.showConfirmDialog(null,
-                    "¿Desea crear archivos de prueba automáticamente?",
+                    "¿Desea crear archivos de prueba automáticamente con textos sobre Johnny Joestar?",
                     "Archivos de prueba",
                     JOptionPane.YES_NO_OPTION);
 
