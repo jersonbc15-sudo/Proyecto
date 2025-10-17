@@ -42,26 +42,56 @@ public class ArchivoBusquedaDetallada {
         JOptionPane.showMessageDialog(null, scrollPane, "Índice Invertido", JOptionPane.INFORMATION_MESSAGE);
     }
 
+    private static List<String> crearArchivosDePrueba() throws IOException {
+        List<String> rutas = new ArrayList<>();
+
+        String[] nombres = {"texto1.txt", "texto2.txt"};
+        String[] contenidos = {
+            "Hola mundo. Este es el primer archivo de ejemplo. Contiene palabras como sol y luna. El sol brilla mucho.",
+            "Segundo archivo de texto. Aquí también está la palabra sol junto con estrellas y cielo azul."
+        };
+
+        for (int i = 0; i < nombres.length; i++) {
+            Path ruta = Paths.get(nombres[i]);
+            Files.write(ruta, contenidos[i].getBytes());
+            rutas.add(ruta.toAbsolutePath().toString());
+        }
+
+        return rutas;
+    }
+
     public static void main(String[] args) {
         ArchivoBusquedaDetallada buscador = new ArchivoBusquedaDetallada();
-
-        // Pedir archivos separados por coma
-        String entradaArchivos = JOptionPane.showInputDialog(null,
-                "Ingrese las rutas de los archivos separados por coma:",
-                "Archivos para indexar",
-                JOptionPane.QUESTION_MESSAGE);
-
-        if (entradaArchivos == null || entradaArchivos.trim().isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No se ingresaron archivos. Saliendo.");
-            return;
-        }
-
         List<String> archivos = new ArrayList<>();
-        for (String archivo : entradaArchivos.split(",")) {
-            archivos.add(archivo.trim());
-        }
 
         try {
+            int opcion = JOptionPane.showConfirmDialog(null,
+                    "¿Desea crear archivos de prueba automáticamente?",
+                    "Archivos de prueba",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (opcion == JOptionPane.YES_OPTION) {
+                archivos = crearArchivosDePrueba();
+                JOptionPane.showMessageDialog(null,
+                        "Se crearon los archivos de prueba:\n" + String.join("\n", archivos),
+                        "Archivos creados",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                String entradaArchivos = JOptionPane.showInputDialog(null,
+                        "Ingrese las rutas de los archivos separados por coma:",
+                        "Archivos para indexar",
+                        JOptionPane.QUESTION_MESSAGE);
+
+                if (entradaArchivos == null || entradaArchivos.trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "No se ingresaron archivos. Saliendo.");
+                    return;
+                }
+
+                for (String archivo : entradaArchivos.split(",")) {
+                    archivos.add(archivo.trim());
+                }
+            }
+
             buscador.construirIndice(archivos);
             buscador.mostrarIndice();
 
@@ -97,9 +127,5 @@ public class ArchivoBusquedaDetallada {
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
         }
-    }
-}
-
-        scanner.close();
     }
 }
