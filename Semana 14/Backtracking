@@ -1,1 +1,43 @@
+import javax.swing.JOptionPane;
+
+public class BacktrackingBusqueda {
+
+    public static void main(String[] args) {
+
+        int[] datos = {3, 8, 15, 23, 42, 50};
+
+        String input = JOptionPane.showInputDialog(
+                "Ingrese el número a buscar:"
+        );
+
+        int numeroBuscado = Integer.parseInt(input);
+
+        boolean encontrado = buscar(datos, numeroBuscado, 0);
+
+        if (encontrado) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "El número " + numeroBuscado + " SÍ se encuentra en el arreglo."
+            );
+        } else {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "El número " + numeroBuscado + " NO está en el arreglo."
+            );
+        }
+    }
+
+    public static boolean buscar(int[] arr, int objetivo, int index) {
+
+        if (index >= arr.length) {
+            return false;
+        }
+
+        if (arr[index] == objetivo) {
+            return true;
+        }
+
+        return buscar(arr, objetivo, index + 1);
+    }
+}
 
