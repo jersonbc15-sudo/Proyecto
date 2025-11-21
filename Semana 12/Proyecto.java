@@ -1,131 +1,86 @@
-import javax.swing.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+package ordenamientosventana;
 
-public class ArchivoBusquedaDetallada {
+import javax.swing.JOptionPane;
+import java.util.Arrays;
 
-    private Map<String, Set<String>> indiceInvertido;
-
-    public ArchivoBusquedaDetallada() {
-        indiceInvertido = new HashMap<>();
-    }
-
-    public void construirIndice(List<String> archivos) throws IOException {
-        for (String archivo : archivos) {
-            List<String> lineas = Files.readAllLines(Paths.get(archivo));
-            for (String linea : lineas) {
-                String[] palabras = linea.toLowerCase().split("\\W+");
-                for (String palabra : palabras) {
-                    if (palabra.isEmpty()) continue;
-                    indiceInvertido
-                        .computeIfAbsent(palabra, k -> new HashSet<>())
-                        .add(archivo);
-                }
-            }
-        }
-    }
-
-    public Set<String> buscar(String palabra) {
-        return indiceInvertido.getOrDefault(palabra.toLowerCase(), Collections.emptySet());
-    }
-
-    public void mostrarIndice() {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Set<String>> entry : indiceInvertido.entrySet()) {
-            sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append("\n");
-        }
-        JTextArea textArea = new JTextArea(sb.toString());
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new java.awt.Dimension(400, 300));
-        JOptionPane.showMessageDialog(null, scrollPane, "Índice Invertido", JOptionPane.INFORMATION_MESSAGE);
-    }
-
-    private static List<String> crearArchivosDePrueba() throws IOException {
-        List<String> rutas = new ArrayList<>();
-
-        String[] nombres = {"johnny_historia.txt", "steel_ball_run.txt"};
-        String[] contenidos = {
-            "Johnny Joestar fue un joven jinete con un gran talento, pero tras un accidente perdió la movilidad de sus piernas. Su viaje comienza cuando conoce a Gyro Zeppeli durante la carrera Steel Ball Run. Johnny busca comprender el poder del Spin para poder volver a caminar y encontrar su propósito. Su determinación lo lleva a enfrentarse a enemigos y superar sus límites, impulsado por la esperanza y la fe en sí mismo.",
-            "Durante la carrera Steel Ball Run, Johnny y Gyro forman un vínculo profundo. Gyro le enseña a Johnny el arte del Spin y el poder del equilibrio. Con su Stand Tusk, Johnny aprende a canalizar el Spin en niveles cada vez más poderosos. Juntos enfrentan a Valentine y su Stand Dirty Deeds Done Dirt Cheap, luchando por la libertad y la justicia en un mundo lleno de misterio y destino."
-        };
-
-        for (int i = 0; i < nombres.length; i++) {
-            Path ruta = Paths.get(nombres[i]);
-            Files.write(ruta, contenidos[i].getBytes());
-            rutas.add(ruta.toAbsolutePath().toString());
-        }
-
-        return rutas;
-    }
+public class OrdenamientosVentana {
 
     public static void main(String[] args) {
-        ArchivoBusquedaDetallada buscador = new ArchivoBusquedaDetallada();
-        List<String> archivos = new ArrayList<>();
 
-        try {
-            int opcion = JOptionPane.showConfirmDialog(null,
-                    "¿Desea crear archivos de prueba automáticamente con textos sobre Johnny Joestar?",
-                    "Archivos de prueba",
-                    JOptionPane.YES_NO_OPTION);
+        String[] opciones = {"Quick Sort", "Shell Sort"};
+        int seleccion = JOptionPane.showOptionDialog(
+                null,
+                "Elige un método de ordenación:",
+                "Menú de Ordenamientos",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]
+        );
 
-            if (opcion == JOptionPane.YES_OPTION) {
-                archivos = crearArchivosDePrueba();
-                JOptionPane.showMessageDialog(null,
-                        "Se crearon los archivos de prueba:\n" + String.join("\n", archivos),
-                        "Archivos creados",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                String entradaArchivos = JOptionPane.showInputDialog(null,
-                        "Ingrese las rutas de los archivos separados por coma:",
-                        "Archivos para indexar",
-                        JOptionPane.QUESTION_MESSAGE);
+        String input = JOptionPane.showInputDialog(
+                null,
+                "Ingresa números separados por comas:\nEjemplo: 8,3,10,2,6"
+        );
 
-                if (entradaArchivos == null || entradaArchivos.trim().isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "No se ingresaron archivos. Saliendo.");
-                    return;
-                }
+        String[] parts = input.split(",");
+        int[] arr = new int[parts.length];
 
-                for (String archivo : entradaArchivos.split(",")) {
-                    archivos.add(archivo.trim());
-                }
-            }
+        for (int i = 0; i < parts.length; i++) {
+            arr[i] = Integer.parseInt(parts[i].trim());
+        }
 
-            buscador.construirIndice(archivos);
-            buscador.mostrarIndice();
-
-            String palabra = JOptionPane.showInputDialog(null,
-                    "Ingrese la palabra a buscar:",
-                    "Buscar palabra",
-                    JOptionPane.QUESTION_MESSAGE);
-
-            if (palabra == null || palabra.trim().isEmpty()) {
-                JOptionPane.showMessageDialog(null, "No se ingresó palabra para buscar. Saliendo.");
-                return;
-            }
-
-            Set<String> resultados = buscador.buscar(palabra.trim());
-
-            if (resultados.isEmpty()) {
-                JOptionPane.showMessageDialog(null,
-                        "No se encontraron resultados para '" + palabra + "'",
-                        "Resultados",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                StringBuilder sb = new StringBuilder();
-                sb.append("La palabra '").append(palabra).append("' aparece en los archivos:\n");
-                for (String archivo : resultados) {
-                    sb.append(" - ").append(archivo).append("\n");
-                }
-                JOptionPane.showMessageDialog(null, sb.toString(), "Resultados", JOptionPane.INFORMATION_MESSAGE);
-            }
-
-        } catch (IOException e) {
+        if (seleccion == 0) {
+            quickSort(arr, 0, arr.length - 1);
             JOptionPane.showMessageDialog(null,
-                    "Error leyendo archivos: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                    "Ordenado con QUICK SORT:\n" + Arrays.toString(arr));
+        } else {
+            shellSort(arr);
+            JOptionPane.showMessageDialog(null,
+                    "Ordenado con SHELL SORT:\n" + Arrays.toString(arr));
+        }
+    }
+
+    public static void quickSort(int[] arr, int low, int high) {
+        if (low < high) {
+            int pivotIndex = partition(arr, low, high);
+            quickSort(arr, low, pivotIndex - 1);
+            quickSort(arr, pivotIndex + 1, high);
+        }
+    }
+
+    public static int partition(int[] arr, int low, int high) {
+        int pivot = arr[high];
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr, i, j);
+            }
+        }
+        swap(arr, i + 1, high);
+        return i + 1;
+    }
+
+    public static void swap(int[] arr, int i, int j) {
+        int temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+
+    public static void shellSort(int[] arr) {
+        int n = arr.length;
+        for (int gap = n / 2; gap > 0; gap /= 2) {
+            for (int i = gap; i < n; i++) {
+                int temp = arr[i];
+                int j = i;
+                while (j >= gap && arr[j - gap] > temp) {
+                    arr[j] = arr[j - gap];
+                    j -= gap;
+                }
+                arr[j] = temp;
+            }
         }
     }
 }
